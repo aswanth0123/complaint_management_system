@@ -1,0 +1,196 @@
+{% extends 'base.html' %}
+
+{% block title %}Complaint Detail - Complaint Management System{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">Complaint #{{ complaint.id }}</h1>
+    <div class="btn-toolbar mb-2 mb-md-0">
+        <div class="btn-group me-2">
+            <a href="{% url 'assigned_complaints' %}" class="btn btn-sm btn-outline-secondary">
+                <i class="fas fa-arrow-left me-1"></i>
+                Back to List
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <!-- Complaint Details -->
+        <div class="card border-0 shadow mb-4">
+            <div class="card-header bg-light">
+                <h6 class="m-0 font-weight-bold text-primary">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    Complaint Information
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6 class="text-muted">Customer</h6>
+                        <p class="fw-bold">{{ complaint.customer.name }}</p>
+                        <small class="text-muted">{{ complaint.customer.contact_number }} | {{ complaint.customer.email }}</small>
+                    </div>
+                    <div class="col-md-6">
+                        <h6 class="text-muted">Product</h6>
+                        <p class="fw-bold">{{ complaint.product.name }}</p>
+                        <small class="text-muted">Price: ${{ complaint.product.price }} | Tax: {{ complaint.product.tax }}%</small>
+                    </div>
+                </div>
+                
+                <hr>
+                
+                <div class="row">
+                    <div class="col-md-4">
+                        <h6 class="text-muted">Complaint Level</h6>
+                        {% if complaint.complaint_level == 'Level 1' %}
+                            <span class="badge bg-success">{{ complaint.complaint_level }}</span>
+                        {% elif complaint.complaint_level == 'Level 2' %}
+                            <span class="badge bg-warning">{{ complaint.complaint_level }}</span>
+                        {% else %}
+                            <span class="badge bg-danger">{{ complaint.complaint_level }}</span>
+                        {% endif %}
+                    </div>
+                    <div class="col-md-4">
+                        <h6 class="text-muted">Status</h6>
+                        {% if complaint.status == 'Pending' %}
+                            <span class="badge bg-warning">{{ complaint.status }}</span>
+                        {% elif complaint.status == 'Closed' %}
+                            <span class="badge bg-success">{{ complaint.status }}</span>
+                        {% else %}
+                            <span class="badge bg-danger">{{ complaint.status }}</span>
+                        {% endif %}
+                    </div>
+                    <div class="col-md-4">
+                        <h6 class="text-muted">Created</h6>
+                        <small class="text-muted">{{ complaint.created_at|date:"M d, Y H:i" }}</small>
+                    </div>
+                </div>
+                
+                <hr>
+                
+                <div>
+                    <h6 class="text-muted">Description</h6>
+                    <p>{{ complaint.description }}</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Status Update -->
+        <div class="card border-0 shadow mb-4">
+            <div class="card-header bg-light">
+                <h6 class="m-0 font-weight-bold text-primary">
+                    <i class="fas fa-edit me-2"></i>
+                    Update Status
+                </h6>
+            </div>
+            <div class="card-body">
+                <form method="post" action="{% url 'update_complaint_status' complaint.pk %}">
+                    {% csrf_token %}
+                    <div class="row">
+                        <div class="col-md-6">
+                            <label for="status" class="form-label">Status</label>
+                            <select name="status" id="status" class="form-select">
+                                <option value="Pending" {% if complaint.status == 'Pending' %}selected{% endif %}>Pending</option>
+                                <option value="Closed" {% if complaint.status == 'Closed' %}selected{% endif %}>Closed</option>
+                                <option value="Not Closed" {% if complaint.status == 'Not Closed' %}selected{% endif %}>Not Closed</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6 d-flex align-items-end">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-2"></i>
+                                Update Status
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Add Remark -->
+        <div class="card border-0 shadow mb-4">
+            <div class="card-header bg-light">
+                <h6 class="m-0 font-weight-bold text-primary">
+                    <i class="fas fa-comment me-2"></i>
+                    Add Remark
+                </h6>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        {{ form.remark }}
+                        {% if form.remark.errors %}
+                            <div class="text-danger small">{{ form.remark.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-plus me-2"></i>
+                        Add Remark
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <!-- Remarks History -->
+        <div class="card border-0 shadow">
+            <div class="card-header bg-light">
+                <h6 class="m-0 font-weight-bold text-primary">
+                    <i class="fas fa-history me-2"></i>
+                    Remarks History
+                </h6>
+            </div>
+            <div class="card-body">
+                {% if remarks %}
+                    <div class="timeline">
+                        {% for remark in remarks %}
+                        <div class="timeline-item mb-3">
+                            <div class="d-flex">
+                                <div class="avatar-sm bg-primary rounded-circle d-flex align-items-center justify-content-center me-3">
+                                    <i class="fas fa-user text-white"></i>
+                                </div>
+                                <div class="flex-grow-1">
+                                    <div class="d-flex justify-content-between">
+                                        <h6 class="mb-1">{{ remark.employee.user.get_full_name|default:remark.employee.user.username }}</h6>
+                                        <small class="text-muted">{{ remark.timestamp|date:"M d, H:i" }}</small>
+                                    </div>
+                                    <p class="mb-1">{{ remark.remark }}</p>
+                                    <small class="text-muted">{{ remark.employee.designation }}</small>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="text-center text-muted">
+                        <i class="fas fa-comment fa-2x mb-2"></i>
+                        <p>No remarks yet</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.timeline-item {
+    border-left: 2px solid #e9ecef;
+    padding-left: 1rem;
+    position: relative;
+}
+
+.timeline-item::before {
+    content: '';
+    position: absolute;
+    left: -0.5rem;
+    top: 0.5rem;
+    width: 0.75rem;
+    height: 0.75rem;
+    background-color: #007bff;
+    border-radius: 50%;
+}
+</style>
+{% endblock %} 

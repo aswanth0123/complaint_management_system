@@ -1,0 +1,85 @@
+{% extends 'base.html' %}
+
+{% block title %}Employees - Complaint Management System{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">Employee Management</h1>
+    <div class="btn-toolbar mb-2 mb-md-0">
+        <div class="btn-group me-2">
+            <a href="{% url 'employee_create' %}" class="btn btn-sm btn-primary">
+                <i class="fas fa-plus me-1"></i>
+                Add Employee
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="card border-0 shadow">
+    <div class="card-header bg-light">
+        <h6 class="m-0 font-weight-bold text-primary">
+            <i class="fas fa-users me-2"></i>
+            Employee List
+        </h6>
+    </div>
+    <div class="card-body">
+        {% if employees %}
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Designation</th>
+                        <th>Phone</th>
+                        <th>Salary</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for employee in employees %}
+                    <tr>
+                        <td>
+                            <div class="d-flex align-items-center">
+                                <div class="avatar-sm bg-primary rounded-circle d-flex align-items-center justify-content-center me-3">
+                                    <i class="fas fa-user text-white"></i>
+                                </div>
+                                <div>
+                                    <div class="fw-bold">{{ employee.user.get_full_name|default:employee.user.username }}</div>
+                                    <small class="text-muted">{{ employee.user.email }}</small>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <span class="badge bg-info">{{ employee.designation }}</span>
+                        </td>
+                        <td>{{ employee.phone }}</td>
+                        <td>${{ employee.salary }}</td>
+                        <td>
+                            <div class="btn-group" role="group">
+                                <a href="{% url 'employee_edit' employee.pk %}" class="btn btn-sm btn-outline-primary">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <a href="{% url 'employee_delete' employee.pk %}" class="btn btn-sm btn-outline-danger">
+                                    <i class="fas fa-trash"></i>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center py-4">
+            <i class="fas fa-users fa-3x text-muted mb-3"></i>
+            <h5 class="text-muted">No employees found</h5>
+            <p class="text-muted">Start by adding your first employee.</p>
+            <a href="{% url 'employee_create' %}" class="btn btn-primary">
+                <i class="fas fa-plus me-2"></i>
+                Add Employee
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %} 

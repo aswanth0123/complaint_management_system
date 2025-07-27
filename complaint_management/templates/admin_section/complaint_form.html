@@ -1,0 +1,193 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ title }} - Complaint Management System{% endblock %}
+
+{% block extra_css %}
+<style>
+    #map {
+        height: 400px;
+        width: 100%;
+        border-radius: 0.5rem;
+    }
+    .location-info {
+        background-color: #f8f9fa;
+        padding: 1rem;
+        border-radius: 0.5rem;
+        margin-top: 1rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">{{ title }}</h1>
+    <div class="btn-toolbar mb-2 mb-md-0">
+        <div class="btn-group me-2">
+            <a href="{% url 'complaint_list' %}" class="btn btn-sm btn-outline-secondary">
+                <i class="fas fa-arrow-left me-1"></i>
+                Back to List
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card border-0 shadow">
+            <div class="card-header bg-light">
+                <h6 class="m-0 font-weight-bold text-primary">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    Complaint Information
+                </h6>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.customer.id_for_label }}" class="form-label">Customer</label>
+                            {{ form.customer }}
+                            {% if form.customer.errors %}
+                                <div class="text-danger small">{{ form.customer.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.product.id_for_label }}" class="form-label">Product</label>
+                            {{ form.product }}
+                            {% if form.product.errors %}
+                                <div class="text-danger small">{{ form.product.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.complaint_level.id_for_label }}" class="form-label">Complaint Level</label>
+                            {{ form.complaint_level }}
+                            {% if form.complaint_level.errors %}
+                                <div class="text-danger small">{{ form.complaint_level.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="{{ form.description.id_for_label }}" class="form-label">Description</label>
+                        {{ form.description }}
+                        {% if form.description.errors %}
+                            <div class="text-danger small">{{ form.description.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="d-flex justify-content-end">
+                        <a href="{% url 'complaint_list' %}" class="btn btn-secondary me-2">Cancel</a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save me-2"></i>
+                            Save Complaint
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card border-0 shadow">
+            <div class="card-header bg-light">
+                <h6 class="m-0 font-weight-bold text-primary">
+                    <i class="fas fa-map-marker-alt me-2"></i>
+                    Location
+                </h6>
+            </div>
+            <div class="card-body">
+                <div id="map"></div>
+                <div class="location-info">
+                    <small class="text-muted">
+                        <i class="fas fa-info-circle me-1"></i>
+                        Click on the map to set the complaint location
+                    </small>
+                    <div class="mt-2">
+                        <small class="text-muted">Latitude: <span id="lat-display">-</span></small><br>
+                        <small class="text-muted">Longitude: <span id="lng-display">-</span></small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    let map;
+    let marker;
+    let selectedLat = null;
+    let selectedLng = null;
+
+    function initMap() {
+        // Default location (you can change this to your preferred default)
+        const defaultLocation = { lat: 20.5937, lng: 78.9629 }; // India center
+        
+        map = new google.maps.Map(document.getElementById("map"), {
+            zoom: 5,
+            center: defaultLocation,
+        });
+
+        // Add click listener to map
+        map.addListener("click", (event) => {
+            placeMarker(event.latLng);
+        });
+    }
+
+    function placeMarker(location) {
+        if (marker) {
+            marker.setMap(null);
+        }
+        
+        marker = new google.maps.Marker({
+            position: location,
+            map: map,
+        });
+
+        selectedLat = location.lat();
+        selectedLng = location.lng();
+        
+        document.getElementById('lat-display').textContent = selectedLat.toFixed(6);
+        document.getElementById('lng-display').textContent = selectedLng.toFixed(6);
+        
+        // Save location to database if complaint exists
+        {% if complaint %}
+        saveLocationToDatabase({{ complaint.id }}, selectedLat, selectedLng);
+        {% endif %}
+    }
+
+    function saveLocationToDatabase(complaintId, lat, lng) {
+        fetch('{% url "save_location" %}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+            },
+            body: JSON.stringify({
+                complaint_id: complaintId,
+                lat: lat,
+                lng: lng
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                console.log('Location saved successfully');
+            }
+        })
+        .catch(error => {
+            console.error('Error saving location:', error);
+        });
+    }
+
+    // Initialize map when page loads
+    window.addEventListener('load', initMap);
+</script>
+<script async defer src="https://maps.googleapis.com/maps/api/js?key=YOUR_GOOGLE_MAPS_API_KEY&callback=initMap"></script>
+{% endblock %} 

@@ -1,0 +1,75 @@
+{% extends 'base.html' %}
+
+{% block title %}Products - Complaint Management System{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">Product Management</h1>
+    <div class="btn-toolbar mb-2 mb-md-0">
+        <div class="btn-group me-2">
+            <a href="{% url 'product_create' %}" class="btn btn-sm btn-primary">
+                <i class="fas fa-plus me-1"></i>
+                Add Product
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="card border-0 shadow">
+    <div class="card-header bg-light">
+        <h6 class="m-0 font-weight-bold text-primary">
+            <i class="fas fa-box me-2"></i>
+            Product List
+        </h6>
+    </div>
+    <div class="card-body">
+        {% if products %}
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Price</th>
+                        <th>Tax</th>
+                        <th>Total Price</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for product in products %}
+                    <tr>
+                        <td>
+                            <div class="fw-bold">{{ product.name }}</div>
+                        </td>
+                        <td>${{ product.price }}</td>
+                        <td>{{ product.tax }}%</td>
+                        <td>${{ product.total_price|floatformat:2 }}</td>
+                        <td>
+                            <div class="btn-group" role="group">
+                                <a href="{% url 'product_edit' product.pk %}" class="btn btn-sm btn-outline-primary">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <a href="{% url 'product_delete' product.pk %}" class="btn btn-sm btn-outline-danger">
+                                    <i class="fas fa-trash"></i>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center py-4">
+            <i class="fas fa-box fa-3x text-muted mb-3"></i>
+            <h5 class="text-muted">No products found</h5>
+            <p class="text-muted">Start by adding your first product.</p>
+            <a href="{% url 'product_create' %}" class="btn btn-primary">
+                <i class="fas fa-plus me-2"></i>
+                Add Product
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %} 
