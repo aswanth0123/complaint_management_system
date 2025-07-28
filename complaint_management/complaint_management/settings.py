@@ -91,12 +91,12 @@ WSGI_APPLICATION = 'complaint_management.wsgi.application'
 #         'PORT': '5432',
 #     }
 # }
+
+#for production database
 DATABASES = {
-    'default': dj_database_url.config(
-        default='postgresql://postgres:asd123@localhost:5432/complaint_db',
-        conn_max_age=600
-    )
+    'default': dj_database_url.config(default=os.environ.get("DATABASE_URL"))
 }
+
 
 AUTH_USER_MODEL = 'complaints.User'
 # Password validation
