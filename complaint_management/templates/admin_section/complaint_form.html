@@ -3,17 +3,23 @@
 {% block title %}{{ title }} - Complaint Management System{% endblock %}
 
 {% block extra_css %}
+<!-- Leaflet CSS -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 <style>
     #map {
         height: 400px;
         width: 100%;
         border-radius: 0.5rem;
+        margin-top: 1rem;
     }
     .location-info {
         background-color: #f8f9fa;
         padding: 1rem;
         border-radius: 0.5rem;
         margin-top: 1rem;
+    }
+    .map-container {
+        margin-top: 2rem;
     }
 </style>
 {% endblock %}
@@ -79,6 +85,10 @@
                             <div class="text-danger small">{{ form.description.errors.0 }}</div>
                         {% endif %}
                     </div>
+
+                    <!-- Hidden location fields -->
+                    {{ form.location_lat }}
+                    {{ form.location_lng }}
                     
                     <div class="d-flex justify-content-end">
                         <a href="{% url 'complaint_list' %}" class="btn btn-secondary me-2">Cancel</a>
@@ -105,12 +115,37 @@
                 <div class="location-info">
                     <small class="text-muted">
                         <i class="fas fa-info-circle me-1"></i>
-                        Click on the map to set the complaint location
+                        Drag the marker to set the complaint location
                     </small>
                     <div class="mt-2">
-                        <small class="text-muted">Latitude: <span id="lat-display">-</span></small><br>
-                        <small class="text-muted">Longitude: <span id="lng-display">-</span></small>
+                        <small class="text-muted">Latitude: <span id="lat-display">12.9716</span></small><br>
+                        <small class="text-muted">Longitude: <span id="lng-display">77.5946</span></small>
                     </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Map container for mobile responsiveness -->
+<div class="map-container d-md-none">
+    <div class="card border-0 shadow">
+        <div class="card-header bg-light">
+            <h6 class="m-0 font-weight-bold text-primary">
+                <i class="fas fa-map-marker-alt me-2"></i>
+                Location
+            </h6>
+        </div>
+        <div class="card-body">
+            <div id="map-mobile" style="height: 300px; width: 100%; border-radius: 0.5rem;"></div>
+            <div class="location-info">
+                <small class="text-muted">
+                    <i class="fas fa-info-circle me-1"></i>
+                    Drag the marker to set the complaint location
+                </small>
+                <div class="mt-2">
+                    <small class="text-muted">Latitude: <span id="lat-display-mobile">12.9716</span></small><br>
+                    <small class="text-muted">Longitude: <span id="lng-display-mobile">77.5946</span></small>
                 </div>
             </div>
         </div>
@@ -119,75 +154,124 @@
 {% endblock %}
 
 {% block extra_js %}
+<!-- Leaflet JS -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
-    let map;
-    let marker;
-    let selectedLat = null;
-    let selectedLng = null;
-
-    function initMap() {
-        // Default location (you can change this to your preferred default)
-        const defaultLocation = { lat: 20.5937, lng: 78.9629 }; // India center
-        
-        map = new google.maps.Map(document.getElementById("map"), {
-            zoom: 5,
-            center: defaultLocation,
-        });
-
-        // Add click listener to map
-        map.addListener("click", (event) => {
-            placeMarker(event.latLng);
-        });
-    }
-
-    function placeMarker(location) {
-        if (marker) {
-            marker.setMap(null);
-        }
-        
-        marker = new google.maps.Marker({
-            position: location,
-            map: map,
-        });
-
-        selectedLat = location.lat();
-        selectedLng = location.lng();
-        
-        document.getElementById('lat-display').textContent = selectedLat.toFixed(6);
-        document.getElementById('lng-display').textContent = selectedLng.toFixed(6);
-        
-        // Save location to database if complaint exists
-        {% if complaint %}
-        saveLocationToDatabase({{ complaint.id }}, selectedLat, selectedLng);
-        {% endif %}
-    }
-
-    function saveLocationToDatabase(complaintId, lat, lng) {
-        fetch('{% url "save_location" %}', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
-            },
-            body: JSON.stringify({
-                complaint_id: complaintId,
-                lat: lat,
-                lng: lng
-            })
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.status === 'success') {
-                console.log('Location saved successfully');
-            }
-        })
-        .catch(error => {
-            console.error('Error saving location:', error);
-        });
-    }
+    let map, mapMobile;
+    let marker, markerMobile;
+    let selectedLat = 12.9716; // Bangalore latitude
+    let selectedLng = 77.5946; // Bangalore longitude
 
     // Initialize map when page loads
-    window.addEventListener('load', initMap);
+    document.addEventListener('DOMContentLoaded', function() {
+        initMap();
+        initMobileMap();
+        updateHiddenFields();
+    });
+
+    function initMap() {
+        // Default location (Bangalore)
+        const defaultLocation = { lat: selectedLat, lng: selectedLng };
+        
+        map = L.map('map').setView(defaultLocation, 12);
+
+        // Add OpenStreetMap tiles
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap contributors'
+        }).addTo(map);
+
+        // Add draggable marker
+        marker = L.marker(defaultLocation, {
+            draggable: true
+        }).addTo(map);
+
+        // Add drag event listener
+        marker.on('dragend', function(event) {
+            const position = event.target.getLatLng();
+            selectedLat = position.lat;
+            selectedLng = position.lng;
+            updateDisplay();
+            updateHiddenFields();
+        });
+
+        // Add click event listener to map
+        map.on('click', function(event) {
+            const position = event.latlng;
+            selectedLat = position.lat;
+            selectedLng = position.lng;
+            marker.setLatLng(position);
+            updateDisplay();
+            updateHiddenFields();
+        });
+    }
+
+    function initMobileMap() {
+        // Default location (Bangalore)
+        const defaultLocation = { lat: selectedLat, lng: selectedLng };
+        
+        mapMobile = L.map('map-mobile').setView(defaultLocation, 12);
+
+        // Add OpenStreetMap tiles
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap contributors'
+        }).addTo(mapMobile);
+
+        // Add draggable marker
+        markerMobile = L.marker(defaultLocation, {
+            draggable: true
+        }).addTo(mapMobile);
+
+        // Add drag event listener
+        markerMobile.on('dragend', function(event) {
+            const position = event.target.getLatLng();
+            selectedLat = position.lat;
+            selectedLng = position.lng;
+            updateDisplay();
+            updateHiddenFields();
+        });
+
+        // Add click event listener to map
+        mapMobile.on('click', function(event) {
+            const position = event.latlng;
+            selectedLat = position.lat;
+            selectedLng = position.lng;
+            markerMobile.setLatLng(position);
+            updateDisplay();
+            updateHiddenFields();
+        });
+    }
+
+    function updateDisplay() {
+        // Update desktop display
+        const latDisplay = document.getElementById('lat-display');
+        const lngDisplay = document.getElementById('lng-display');
+        if (latDisplay && lngDisplay) {
+            latDisplay.textContent = selectedLat.toFixed(6);
+            lngDisplay.textContent = selectedLng.toFixed(6);
+        }
+
+        // Update mobile display
+        const latDisplayMobile = document.getElementById('lat-display-mobile');
+        const lngDisplayMobile = document.getElementById('lng-display-mobile');
+        if (latDisplayMobile && lngDisplayMobile) {
+            latDisplayMobile.textContent = selectedLat.toFixed(6);
+            lngDisplayMobile.textContent = selectedLng.toFixed(6);
+        }
+    }
+
+    function updateHiddenFields() {
+        // Update hidden form fields
+        const latField = document.querySelector('input[name="location_lat"]');
+        const lngField = document.querySelector('input[name="location_lng"]');
+        
+        if (latField) latField.value = selectedLat;
+        if (lngField) lngField.value = selectedLng;
+    }
+
+    // Handle window resize for responsive behavior
+    window.addEventListener('resize', function() {
+        if (map) map.invalidateSize();
+        if (mapMobile) mapMobile.invalidateSize();
+    });
 </script>
-<script async defer src="https://maps.googleapis.com/maps/api/js?key=YOUR_GOOGLE_MAPS_API_KEY&callback=initMap"></script>
 {% endblock %} 

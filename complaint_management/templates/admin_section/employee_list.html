@@ -53,7 +53,7 @@
                             <span class="badge bg-info">{{ employee.designation }}</span>
                         </td>
                         <td>{{ employee.phone }}</td>
-                        <td>${{ employee.salary }}</td>
+                        <td>₹{{ employee.salary }}</td>
                         <td>
                             <div class="btn-group" role="group">
                                 <a href="{% url 'employee_edit' employee.pk %}" class="btn btn-sm btn-outline-primary">

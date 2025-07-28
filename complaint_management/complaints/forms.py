@@ -41,7 +41,7 @@ class EmployeeForm(forms.ModelForm):
     )
     phone = forms.CharField(
         widget=forms.TextInput(attrs={'class': 'form-control'}),
-        validators=[RegexValidator(r'^[0-9]{10,15}$', 'Enter a valid phone number (10-15 digits).')]
+        validators=[RegexValidator(r'^[0-9]{10,15}₹', 'Enter a valid phone number (10-15 digits).')]
     )
 
     class Meta:
@@ -137,9 +137,18 @@ class ProductForm(forms.ModelForm):
         }
 
 class ComplaintForm(forms.ModelForm):
+    location_lat = forms.FloatField(
+        widget=forms.HiddenInput(),
+        required=False
+    )
+    location_lng = forms.FloatField(
+        widget=forms.HiddenInput(),
+        required=False
+    )
+
     class Meta:
         model = Complaint
-        fields = ['customer', 'product', 'complaint_level', 'description']
+        fields = ['customer', 'product', 'complaint_level', 'description', 'location_lat', 'location_lng']
         widgets = {
             'customer': forms.Select(attrs={'class': 'form-control'}),
             'product': forms.Select(attrs={'class': 'form-control'}),

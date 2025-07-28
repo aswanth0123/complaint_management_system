@@ -41,9 +41,9 @@
                         <td>
                             <div class="fw-bold">{{ product.name }}</div>
                         </td>
-                        <td>${{ product.price }}</td>
+                        <td>₹{{ product.price }}</td>
                         <td>{{ product.tax }}%</td>
-                        <td>${{ product.total_price|floatformat:2 }}</td>
+                        <td>₹{{ product.total_price|floatformat:2 }}</td>
                         <td>
                             <div class="btn-group" role="group">
                                 <a href="{% url 'product_edit' product.pk %}" class="btn btn-sm btn-outline-primary">
