@@ -81,21 +81,21 @@ WSGI_APPLICATION = 'complaint_management.wsgi.application'
 #     }
 # }
 
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.postgresql',
-#         'NAME': 'complaint_db',
-#         'USER': 'postgres',
-#         'PASSWORD': 'asd123',
-#         'HOST': 'localhost',
-#         'PORT': '5432',
-#     }
-# }
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'complaint_db',
+        'USER': 'postgres',
+        'PASSWORD': 'asd123',
+        'HOST': 'localhost',
+        'PORT': '5432',
+    }
+}
 
 #for production database
-DATABASES = {
-    'default': dj_database_url.config(default=os.environ.get("DATABASE_URL"))
-}
+# DATABASES = {
+#     'default': dj_database_url.config(default=os.environ.get("DATABASE_URL"))
+# }
 
 
 AUTH_USER_MODEL = 'complaints.User'
