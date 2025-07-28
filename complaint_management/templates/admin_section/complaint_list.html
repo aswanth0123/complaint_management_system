@@ -23,6 +23,54 @@
         </h6>
     </div>
     <div class="card-body">
+        <form method="get" class="row g-3 mb-3">
+            <div class="col-md-2">
+                <select name="assigned_to" class="form-select">
+                    <option value="">All Employees</option>
+                    {% for emp in employees %}
+                        <option value="{{ emp.id }}" {% if request.GET.assigned_to == emp.id|stringformat:"s" %}selected{% endif %}>
+                            {{ emp.user.get_full_name|default:emp.user.username }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2">
+                <select name="status" class="form-select">
+                    <option value="">All Statuses</option>
+                    <option value="Pending" {% if request.GET.status == "Pending" %}selected{% endif %}>Pending</option>
+                    <option value="Closed" {% if request.GET.status == "Closed" %}selected{% endif %}>Closed</option>
+                    <option value="Not Closed" {% if request.GET.status == "Not Closed" %}selected{% endif %}>Not Closed</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <input type="date" name="date" class="form-control" value="{{ request.GET.date }}">
+            </div>
+            <div class="col-md-2">
+                <select name="product" class="form-select">
+                    <option value="">All Products</option>
+                    {% for prod in products %}
+                        <option value="{{ prod.id }}" {% if request.GET.product == prod.id|stringformat:"s" %}selected{% endif %}>
+                            {{ prod.name }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2">
+                <select name="customer" class="form-select">
+                    <option value="">All Customers</option>
+                    {% for cust in customers %}
+                        <option value="{{ cust.id }}" {% if request.GET.customer == cust.id|stringformat:"s" %}selected{% endif %}>
+                            {{ cust.name }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-primary w-100">
+                    <i class="fas fa-filter me-1"></i> Filter
+                </button>
+            </div>
+        </form>
         {% if complaints %}
         <div class="table-responsive">
             <table class="table table-hover">

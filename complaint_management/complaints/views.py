@@ -206,7 +206,36 @@ def product_delete(request, pk):
 @user_passes_test(is_admin)
 def complaint_list(request):
     complaints = Complaint.objects.all().order_by('-created_at')
-    return render(request, 'admin_section/complaint_list.html', {'complaints': complaints})
+
+    # Get filter values from GET request
+    assigned_to = request.GET.get('assigned_to')
+    status = request.GET.get('status')
+    date = request.GET.get('date')
+    product = request.GET.get('product')
+    customer = request.GET.get('customer')
+
+    if assigned_to:
+        complaints = complaints.filter(assigned_to__id=assigned_to)
+    if status:
+        complaints = complaints.filter(status=status)
+    if date:
+        complaints = complaints.filter(created_at__date=date)
+    if product:
+        complaints = complaints.filter(product__id=product)
+    if customer:
+        complaints = complaints.filter(customer__id=customer)
+
+    # For filter dropdowns
+    employees = Employee.objects.all()
+    products = Product.objects.all()
+    customers = Customer.objects.all()
+
+    return render(request, 'admin_section/complaint_list.html', {
+        'complaints': complaints,
+        'employees': employees,
+        'products': products,
+        'customers': customers,
+    })
 
 @login_required
 @user_passes_test(is_admin)
@@ -293,9 +322,22 @@ def assigned_complaints(request):
     try:
         employee = request.user.employee_profile
         complaints = Complaint.objects.filter(assigned_to=employee).order_by('-created_at')
+        
+        # Get filter values from GET request
+        status = request.GET.get('status')
+        date = request.GET.get('date')
+        search = request.GET.get('search')
+
+        # Apply filters if present
+        if status:
+            complaints = complaints.filter(status=status)
+        if date:
+            complaints = complaints.filter(created_at__date=date)
+        if search:
+            complaints = complaints.filter(description__icontains=search)
     except Employee.DoesNotExist:
         complaints = []
-    
+
     return render(request, 'employees/assigned_complaints.html', {'complaints': complaints})
 
 @login_required
