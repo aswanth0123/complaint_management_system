@@ -178,3 +178,979 @@
     {% block extra_js %}{% endblock %}
 </body>
 </html> 
+
+
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Purchase Return Details</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.4;
+            background-color: #f5f5f5;
+        }
+
+        .print-button {
+            background-color: #007bff;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 20px;
+            font-size: 16px;
+            font-weight: bold;
+        }
+
+        .print-button:hover {
+            background-color: #0056b3;
+        }
+
+        .preview-container {
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 20px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .document {
+            width: 100%;
+            background: white;
+            border: 1px solid #ddd;
+            padding: 20px;
+            min-height: auto;
+        }
+
+        .company-header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #333;
+        }
+
+        .company-name {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 8px;
+            color: #333;
+        }
+
+        .company-details {
+            font-size: 12px;
+            color: #666;
+            line-height: 1.4;
+        }
+
+        .info-section {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 30px;
+            gap: 20px;
+        }
+
+        .vendor-info, .return-info {
+            flex: 1;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+
+        .section-title {
+            font-weight: bold;
+            margin-bottom: 8px;
+            font-size: 14px;
+            color: #333;
+        }
+
+        .section-content {
+            font-size: 12px;
+            line-height: 1.4;
+            color: #555;
+        }
+
+        .table-container {
+            margin-top: 20px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 11px;
+            margin-bottom: 20px;
+            table-layout: fixed;
+        }
+
+        th, td {
+            border: 1px solid #333;
+            padding: 8px;
+            text-align: left;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+        }
+
+        th {
+            background-color: #f5f5f5;
+            font-weight: bold;
+            text-align: center;
+            font-size: 12px;
+        }
+
+        .text-right {
+            text-align: right;
+        }
+
+        .text-center {
+            text-align: center;
+        }
+
+        .totals-section {
+            margin-top: 20px;
+            display: flex;
+            justify-content: flex-end;
+        }
+
+        .totals-table {
+            width: 300px;
+            border-collapse: collapse;
+        }
+
+        .totals-table td {
+            border: 1px solid #333;
+            padding: 8px;
+        }
+
+        .totals-table .label {
+            font-weight: bold;
+            background-color: #f5f5f5;
+        }
+
+        .page-number {
+            text-align: right;
+            margin-top: 20px;
+            font-size: 10px;
+            color: #666;
+        }
+
+        .balance-message {
+            margin-top: 20px;
+            text-align: center;
+            padding: 10px;
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+        }
+
+        .balance-text {
+            font-size: 12px;
+            color: #6c757d;
+            font-style: italic;
+        }
+
+        .amount-words-section {
+            margin-top: 20px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background-color: #f8f9fa;
+        }
+
+        .amount-words-container {
+            display: flex;
+            justify-content: space-between;
+            gap: 20px;
+        }
+
+        .amount-words-column, .total-amount-column {
+            flex: 1;
+        }
+
+        .amount-words-label, .total-amount-label {
+            font-weight: bold;
+            font-size: 12px;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .amount-words-text {
+            font-size: 11px;
+            color: #555;
+            line-height: 1.4;
+            font-style: italic;
+        }
+
+        .total-amount-value {
+            font-size: 16px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .tax-table-section {
+            margin-top: 20px;
+        }
+
+        .tax-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 11px;
+            border: 1px solid #333;
+            table-layout: fixed;
+        }
+
+        .tax-table th {
+            background-color: #f5f5f5;
+            font-weight: bold;
+            text-align: center;
+            padding: 8px;
+            border: 1px solid #333;
+            font-size: 12px;
+        }
+
+        .tax-table td {
+            padding: 8px;
+            border: 1px solid #333;
+            text-align: left;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+        }
+
+        .tax-breakdown {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2px;
+        }
+
+        .tax-breakdown div:first-child {
+            font-weight: bold;
+            font-size: 10px;
+        }
+
+        .tax-breakdown div:last-child {
+            font-size: 10px;
+            color: #555;
+        }
+
+        .tax-words-section {
+            margin-top: 15px;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background-color: #f8f9fa;
+        }
+
+        .tax-words-container {
+            text-align: left;
+        }
+
+        .tax-words-label {
+            font-weight: bold;
+            font-size: 12px;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .tax-words-text {
+            font-size: 11px;
+            color: #555;
+            line-height: 1.4;
+            font-style: italic;
+        }
+
+        .additional-details-section {
+            margin-top: 20px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background-color: #f8f9fa;
+        }
+
+        .details-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .details-row {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .details-column {
+            flex: 1;
+            min-width: 200px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            background-color: white;
+        }
+
+        .details-label {
+            font-weight: bold;
+            font-size: 12px;
+            color: #333;
+            margin-bottom: 8px;
+        }
+
+        .details-content {
+            font-size: 11px;
+            color: #555;
+            line-height: 1.4;
+        }
+
+        .signature-line {
+            border-bottom: 1px solid #333;
+            margin-bottom: 5px;
+            height: 20px;
+        }
+
+        .signature-text {
+            font-size: 10px;
+            color: #666;
+            text-align: center;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .details-row {
+                flex-direction: column;
+                gap: 10px;
+            }
+            
+            .details-column {
+                min-width: auto;
+                width: 100%;
+            }
+            
+            .amount-words-container {
+                flex-direction: column;
+                gap: 10px;
+            }
+            
+            .info-section {
+                flex-direction: column;
+                gap: 15px;
+            }
+            
+            .vendor-info, .return-info {
+                width: 100%;
+            }
+        }
+
+        /* Print Styles */
+        @media print {
+            body {
+                margin: 0;
+                padding: 0;
+                background: white;
+            }
+
+            .print-button {
+                display: none;
+            }
+
+            .preview-container {
+                max-width: none;
+                margin: 0;
+                padding: 0;
+                box-shadow: none;
+                border-radius: 0;
+            }
+
+            .document {
+                width: 210mm;
+                min-height: auto;
+                margin: 0 auto;
+                padding: 15mm;
+                border: none;
+                page-break-after: always;
+            }
+
+            .document:last-child {
+                page-break-after: avoid;
+            }
+
+            .company-header {
+                margin-bottom: 20px;
+                padding-bottom: 15px;
+                border-bottom: 2px solid #333;
+            }
+
+            .company-name {
+                font-size: 20px;
+            }
+
+            .company-details {
+                font-size: 11px;
+            }
+
+            .info-section {
+                margin-bottom: 20px;
+            }
+
+            .section-title {
+                font-size: 12px;
+            }
+
+            .section-content {
+                font-size: 11px;
+            }
+
+            table {
+                font-size: 10px;
+            }
+
+            th, td {
+                padding: 6px;
+            }
+
+            .totals-table td {
+                padding: 6px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <button class="print-button" onclick="printDocument()">🖨️ Print Purchase Return</button>
+    
+    <div class="preview-container">
+        <div id="preview" class="document">
+            <!-- Preview content will be generated here -->
+        </div>
+    </div>
+
+<script>
+    const data = [
+        {no:1,product_name:"Product 1",hsn:"123456",qty:10,price:100,tax:18,taxamount:18,total:118},
+        {no:2,product_name:"Product 2",hsn:"123457",qty:20,price:200,tax:18,taxamount:36,total:236},
+        {no:3,product_name:"Product 3",hsn:"123458",qty:30,price:300,tax:18,taxamount:54,total:354},
+        {no:4,product_name:"Product 4",hsn:"123459",qty:40,price:400,tax:18,taxamount:72,total:472},
+        {no:5,product_name:"Product 5",hsn:"123460",qty:50,price:500,tax:18,taxamount:90,total:590},
+        {no:6,product_name:"Product 6",hsn:"123461",qty:60,price:600,tax:18,taxamount:108,total:708},
+        {no:7,product_name:"Product 7",hsn:"123462",qty:70,price:700,tax:18,taxamount:126,total:826},
+        {no:8,product_name:"Product 8",hsn:"123463",qty:80,price:800,tax:18,taxamount:144,total:944},
+        {no:9,product_name:"Product 9",hsn:"123464",qty:90,price:900,tax:18,taxamount:162,total:1062},
+        {no:10,product_name:"Product 10",hsn:"123465",qty:100,price:1000,tax:18,taxamount:180,total:1180},
+        {no:11,product_name:"Product 11",hsn:"123466",qty:110,price:1100,tax:18,taxamount:198,total:1298},
+        {no:12,product_name:"Product 12",hsn:"123467",qty:120,price:1200,tax:18,taxamount:216,total:1416},
+        {no:13,product_name:"Product 13",hsn:"123468",qty:130,price:1300,tax:18,taxamount:234,total:1534},
+        {no:14,product_name:"Product 14",hsn:"123469",qty:140,price:1400,tax:18,taxamount:252,total:1652},
+        {no:15,product_name:"Product 15",hsn:"123470",qty:150,price:1500,tax:18,taxamount:270,total:1770},
+        {no:16,product_name:"Product 16",hsn:"123471",qty:160,price:1600,tax:18,taxamount:288,total:1888},
+        {no:17,product_name:"Product 17",hsn:"123472",qty:170,price:1700,tax:18,taxamount:306,total:2006},
+        {no:18,product_name:"Product 18",hsn:"123473",qty:180,price:1800,tax:18,taxamount:324,total:2124},
+        {no:19,product_name:"Product 19",hsn:"123474",qty:190,price:1900,tax:18,taxamount:342,total:2242},
+        {no:20,product_name:"Product 20",hsn:"123475",qty:200,price:2000,tax:18,taxamount:360,total:2360},
+        {no:21,product_name:"Product 21",hsn:"123476",qty:210,price:2100,tax:18,taxamount:378,total:2478},
+        {no:22,product_name:"Product 22",hsn:"123477",qty:220,price:2200,tax:18,taxamount:396,total:2596},
+        {no:23,product_name:"Product 23",hsn:"123478",qty:230,price:2300,tax:18,taxamount:414,total:2714},
+        {no:24,product_name:"Product 24",hsn:"123479",qty:240,price:2400,tax:18,taxamount:432,total:2832},
+        {no:25,product_name:"Product 25",hsn:"123480",qty:250,price:2500,tax:18,taxamount:450,total:2950},
+        {no:26,product_name:"Product 26",hsn:"123481",qty:260,price:2600,tax:18,taxamount:468,total:3068},
+        {no:27,product_name:"Product 27",hsn:"123482",qty:270,price:2700,tax:18,taxamount:486,total:3186},
+        {no:28,product_name:"Product 28",hsn:"123483",qty:280,price:2800,tax:18,taxamount:504,total:3304},
+        {no:29,product_name:"Product 29",hsn:"123484",qty:290,price:2900,tax:18,taxamount:522,total:3422},
+        {no:30,product_name:"Product 30",hsn:"123485",qty:300,price:3000,tax:18,taxamount:540,total:3540},
+        {no:31,product_name:"Product 31",hsn:"123486",qty:310,price:3100,tax:18,taxamount:558,total:3658},
+        {no:32,product_name:"Product 32",hsn:"123487",qty:320,price:3200,tax:18,taxamount:576,total:3776},
+        {no:33,product_name:"Product 33",hsn:"123488",qty:330,price:3300,tax:18,taxamount:594,total:3894},
+        {no:34,product_name:"Product 34",hsn:"123489",qty:340,price:3400,tax:18,taxamount:612,total:4012},
+        {no:35,product_name:"Product 35",hsn:"123490",qty:350,price:3500,tax:18,taxamount:630,total:4130},
+        {no:36,product_name:"Product 36",hsn:"123491",qty:360,price:3600,tax:18,taxamount:648,total:4248},
+        {no:37,product_name:"Product 37",hsn:"123492",qty:370,price:3700,tax:18,taxamount:666,total:4366},
+        {no:38,product_name:"Product 38",hsn:"123493",qty:380,price:3800,tax:18,taxamount:684,total:4484},
+        {no:39,product_name:"Product 39",hsn:"123494",qty:390,price:3900,tax:18,taxamount:702,total:4602},
+        {no:40,product_name:"Product 40",hsn:"123495",qty:400,price:4000,tax:18,taxamount:720,total:4720},
+        {no:41,product_name:"Product 41",hsn:"123496",qty:410,price:4100,tax:18,taxamount:738,total:4838},
+        {no:42,product_name:"Product 42",hsn:"123497",qty:420,price:4200,tax:18,taxamount:756,total:4956},
+        {no:43,product_name:"Product 43",hsn:"123498",qty:430,price:4300,tax:18,taxamount:774,total:5074},
+    ];
+
+    // Company details
+    const companyDetails = {
+        name: "ABC Company Ltd.",
+        address: "123 Business Street, City, State 12345",
+        phone: "+1 (555) 123-4567",
+        email: "info@abccompany.com",
+        website: "www.abccompany.com"
+    };
+
+    // Vendor details
+    const vendorDetails = {
+        name: "XYZ Suppliers",
+        address: "456 Vendor Lane, Vendor City, VC 67890",
+        phone: "+1 (555) 987-6543",
+        email: "contact@xyzsuppliers.com"
+    };
+
+    // Return details
+    const returnDetails = {
+        returnNumber: "PR-2024-001",
+        date: new Date().toLocaleDateString(),
+        reason: "Defective Products"
+    };
+
+    // Function to convert number to words
+    function numberToWords(num) {
+        const ones = ['', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine'];
+        const teens = ['Ten', 'Eleven', 'Twelve', 'Thirteen', 'Fourteen', 'Fifteen', 'Sixteen', 'Seventeen', 'Eighteen', 'Nineteen'];
+        const tens = ['', '', 'Twenty', 'Thirty', 'Forty', 'Fifty', 'Sixty', 'Seventy', 'Eighty', 'Ninety'];
+        
+        if (num === 0) return 'Zero';
+        if (num < 0) return 'Negative ' + numberToWords(-num);
+        
+        let result = '';
+        
+        if (num >= 10000000) {
+            result += numberToWords(Math.floor(num / 10000000)) + ' Crore ';
+            num %= 10000000;
+        }
+        
+        if (num >= 100000) {
+            result += numberToWords(Math.floor(num / 100000)) + ' Lakh ';
+            num %= 100000;
+        }
+        
+        if (num >= 1000) {
+            result += numberToWords(Math.floor(num / 1000)) + ' Thousand ';
+            num %= 1000;
+        }
+        
+        if (num >= 100) {
+            result += ones[Math.floor(num / 100)] + ' Hundred ';
+            num %= 100;
+        }
+        
+        if (num >= 20) {
+            result += tens[Math.floor(num / 10)] + ' ';
+            num %= 10;
+        } else if (num >= 10) {
+            result += teens[num - 10] + ' ';
+            num = 0;
+        }
+        
+        if (num > 0) {
+            result += ones[num] + ' ';
+        }
+        
+        return result.trim() + ' Rupees Only';
+    }
+
+    function generateDocumentContent(showAllData = false) {
+        const itemsPerPage = 20; // Match the print function
+        const displayData = showAllData ? data : data.slice(0, itemsPerPage);
+        const isLastPage = showAllData || data.length <= itemsPerPage;
+        
+        // Calculate totals
+        const totalQty = data.reduce((sum, item) => sum + item.qty, 0);
+        const totalAmount = data.reduce((sum, item) => sum + item.total, 0);
+        const totalTax = data.reduce((sum, item) => sum + item.taxamount, 0);
+
+        return `
+            <div class="company-header">
+                <div class="company-name">${companyDetails.name}</div>
+                <div class="company-details">
+                    ${companyDetails.address}<br>
+                    Phone: ${companyDetails.phone} | Email: ${companyDetails.email}<br>
+                    Website: ${companyDetails.website}
+                </div>
+            </div>
+
+            <div class="info-section">
+                <div class="vendor-info">
+                    <div class="section-title">Vendor Details:</div>
+                    <div class="section-content">
+                        ${vendorDetails.name}<br>
+                        ${vendorDetails.address}<br>
+                        Phone: ${vendorDetails.phone}<br>
+                        Email: ${vendorDetails.email}
+                    </div>
+                </div>
+                <div class="return-info">
+                    <div class="section-title">Return Details:</div>
+                    <div class="section-content">
+                        Return No: ${returnDetails.returnNumber}<br>
+                        Date: ${returnDetails.date}<br>
+                        Reason: ${returnDetails.reason}
+                    </div>
+                </div>
+            </div>
+
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th style="width: 5%;">No</th>
+                            <th style="width: 30%;">Product Name</th>
+                            <th style="width: 15%;">HSN Code</th>
+                            <th style="width: 10%;">Qty</th>
+                            <th style="width: 12%;">Price</th>
+                            <th style="width: 8%;">Tax %</th>
+                            <th style="width: 12%;">Tax Amount</th>
+                            <th style="width: 12%;">Total</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${displayData.map(item => `
+                            <tr>
+                                <td class="text-center">${item.no}</td>
+                                <td>${item.product_name}</td>
+                                <td class="text-center">${item.hsn}</td>
+                                <td class="text-right">${item.qty}</td>
+                                <td class="text-right">₹${item.price}</td>
+                                <td class="text-right">${item.tax}%</td>
+                                <td class="text-right">₹${item.taxamount}</td>
+                                <td class="text-right">₹${item.total}</td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            </div>
+
+            ${isLastPage ? `
+                <div class="totals-section">
+                    <table class="totals-table">
+                        <tr>
+                            <td class="label">Total Quantity:</td>
+                            <td class="text-right">${totalQty}</td>
+                        </tr>
+                        <tr>
+                            <td class="label">Total Tax Amount:</td>
+                            <td class="text-right">₹${totalTax}</td>
+                        </tr>
+                        <tr>
+                            <td class="label" style="font-size: 14px; font-weight: bold;">Grand Total:</td>
+                            <td class="text-right" style="font-size: 14px; font-weight: bold;">₹${totalAmount}</td>
+                        </tr>
+                    </table>
+                </div>
+            ` : `
+                <div class="balance-message">
+                    <div class="balance-text">
+                        <strong>*** Balance items continue on next page ***</strong>
+                    </div>
+                </div>
+            `}
+
+            <div class="page-number">Page 1 of ${Math.ceil(data.length / itemsPerPage)}</div>
+        `;
+    }
+
+    function printDocument() {
+        // Create a new window for printing
+        const printWindow = window.open('', '_blank');
+        
+        // Calculate how many pages we actually need
+        const itemsPerPage = 20;
+        const totalPages = Math.ceil(data.length / itemsPerPage);
+        let printContent = '';
+        
+        // Calculate grand totals once
+        const totalQty = data.reduce((sum, item) => sum + item.qty, 0);
+        const totalAmount = data.reduce((sum, item) => sum + item.total, 0);
+        const totalTax = data.reduce((sum, item) => sum + item.taxamount, 0);
+        
+        // Create only the pages we need
+        for (let pageNum = 1; pageNum <= totalPages; pageNum++) {
+            const startIndex = (pageNum - 1) * itemsPerPage;
+            const endIndex = Math.min(startIndex + itemsPerPage, data.length);
+            const pageData = data.slice(startIndex, endIndex);
+            
+            // Skip if no data (shouldn't happen, but safety check)
+            if (pageData.length === 0) continue;
+            
+            const isLastPage = (pageNum === totalPages);
+            const hasNextPage = (pageNum < totalPages);
+            
+            // Calculate page totals
+            const pageQty = pageData.reduce((sum, item) => sum + item.qty, 0);
+            const pageAmount = pageData.reduce((sum, item) => sum + item.total, 0);
+            const pageTax = pageData.reduce((sum, item) => sum + item.taxamount, 0);
+            
+            printContent += `
+                <div class="document">
+                    <div class="company-header">
+                        <div class="company-name">${companyDetails.name}</div>
+                        <div class="company-details">
+                            ${companyDetails.address}<br>
+                            Phone: ${companyDetails.phone} | Email: ${companyDetails.email}<br>
+                            Website: ${companyDetails.website}
+                        </div>
+                    </div>
+
+                    <div class="info-section">
+                        <div class="vendor-info">
+                            <div class="section-title">Vendor Details:</div>
+                            <div class="section-content">
+                                ${vendorDetails.name}<br>
+                                ${vendorDetails.address}<br>
+                                Phone: ${vendorDetails.phone}<br>
+                                Email: ${vendorDetails.email}
+                            </div>
+                        </div>
+                        <div class="return-info">
+                            <div class="section-title">Return Details:</div>
+                            <div class="section-content">
+                                Return No: ${returnDetails.returnNumber}<br>
+                                Date: ${returnDetails.date}<br>
+                                Reason: ${returnDetails.reason}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th style="width: 5%;">No</th>
+                                    <th style="width: 30%;">Product Name</th>
+                                    <th style="width: 15%;">HSN Code</th>
+                                    <th style="width: 10%;">Qty</th>
+                                    <th style="width: 12%;">Price</th>
+                                    <th style="width: 8%;">Tax %</th>
+                                    <th style="width: 12%;">Tax Amount</th>
+                                    <th style="width: 12%;">Total</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${pageData.map(item => `
+                                    <tr>
+                                        <td class="text-center">${item.no}</td>
+                                        <td>${item.product_name}</td>
+                                        <td class="text-center">${item.hsn}</td>
+                                        <td class="text-right">${item.qty}</td>
+                                        <td class="text-right">₹${item.price}</td>
+                                        <td class="text-right">${item.tax}%</td>
+                                        <td class="text-right">₹${item.taxamount}</td>
+                                        <td class="text-right">₹${item.total}</td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                            <tfoot>
+                                <tr style="background-color: #f8f9fa; font-weight: bold;">
+                                    <td colspan="3" class="text-right">Page Total:</td>
+                                    <td class="text-right">${pageQty}</td>
+                                    <td class="text-right">₹${pageData.reduce((sum, item) => sum + item.price, 0)}</td>
+                                    <td class="text-right">-</td>
+                                    <td class="text-right">₹${pageTax}</td>
+                                    <td class="text-right">₹${pageAmount}</td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+
+                    ${isLastPage ? `
+                        <div class="totals-section">
+                            <table class="totals-table">
+                                <tr>
+                                    <td class="label">Total Quantity:</td>
+                                    <td class="text-right">${totalQty}</td>
+                                </tr>
+                                <tr>
+                                    <td class="label">Total Tax Amount:</td>
+                                    <td class="text-right">₹${totalTax}</td>
+                                </tr>
+                                <tr>
+                                    <td class="label" style="font-size: 14px; font-weight: bold;">Grand Total:</td>
+                                    <td class="text-right" style="font-size: 14px; font-weight: bold;">₹${totalAmount}</td>
+                                </tr>
+                            </table>
+                        </div>
+                        
+                        <div class="amount-words-section">
+                            <div class="amount-words-container">
+                                <div class="amount-words-column">
+                                    <div class="amount-words-label">Amount in Words:</div>
+                                    <div class="amount-words-text">${numberToWords(totalAmount)}</div>
+                                </div>
+                                <div class="total-amount-column">
+                                    <div class="total-amount-label">Total Amount:</div>
+                                    <div class="total-amount-value">₹${totalAmount}</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="tax-table-section">
+                            <table class="tax-table">
+                                <thead>
+                                    <tr>
+                                        <th>Tax Name</th>
+                                        <th>Taxable Amount</th>
+                                        <th>State Tax</th>
+                                        <th>Central Tax</th>
+                                        <th>Total Tax Amount</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>CGST + SGST</td>
+                                        <td class="text-right">₹${(totalAmount / 1.18).toFixed(2)}</td>
+                                        <td>
+                                            <div class="tax-breakdown">
+                                                <div>9%</div>
+                                                <div>₹${(totalTax / 2).toFixed(2)}</div>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div class="tax-breakdown">
+                                                <div>9%</div>
+                                                <div>₹${(totalTax / 2).toFixed(2)}</div>
+                                            </div>
+                                        </td>
+                                        <td class="text-right">₹${totalTax}</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                            
+                            <div class="tax-words-section">
+                                <div class="tax-words-container">
+                                    <div class="tax-words-label">Tax Amount in Words:</div>
+                                    <div class="tax-words-text">${numberToWords(totalTax)}</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="additional-details-section">
+                            <div class="details-grid">
+                                <div class="details-row">
+                                    <div class="details-column">
+                                        <div class="details-label">Authorized Signatory:</div>
+                                        <div class="details-content">
+                                            <div class="signature-line">_________________</div>
+                                            <div class="signature-text">Name & Signature</div>
+                                        </div>
+                                    </div>
+                                    <div class="details-column">
+                                        <div class="details-label">Date of Return:</div>
+                                        <div class="details-content">${returnDetails.date}</div>
+                                    </div>
+                                </div>
+                                <div class="details-row">
+                                    <div class="details-column">
+                                        <div class="details-label">Return Reason:</div>
+                                        <div class="details-content">${returnDetails.reason}</div>
+                                    </div>
+                                    <div class="details-column">
+                                        <div class="details-label">Return Status:</div>
+                                        <div class="details-content">Approved</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    ` : `
+                        <div class="totals-section">
+                            <table class="totals-table">
+                                <tr>
+                                    <td class="label">Page Total Quantity:</td>
+                                    <td class="text-right">${pageQty}</td>
+                                </tr>
+                                <tr>
+                                    <td class="label">Page Total Amount:</td>
+                                    <td class="text-right">₹${pageAmount}</td>
+                                </tr>
+                            </table>
+                        </div>
+                    `}
+
+                    ${hasNextPage ? `
+                        <div class="balance-message">
+                            <div class="balance-text">
+                                <strong>*** Balance items continue on next page ***</strong>
+                            </div>
+                        </div>
+                    ` : ''}
+
+                    <div class="page-number">Page ${pageNum} of ${totalPages}</div>
+                </div>
+            `;
+        }
+
+        // Write the content to the new window
+        printWindow.document.write(`
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <title>Purchase Return - Print</title>
+                <style>
+                    * { margin: 0; padding: 0; box-sizing: border-box; }
+                    body { font-family: Arial, sans-serif; line-height: 1.4; }
+                    .document { width: 210mm; min-height: auto; margin: 0 auto; padding: 15mm; page-break-after: always; }
+                    .document:last-child { page-break-after: avoid; }
+                    @page { margin: 0; size: A4; }
+                    .company-header { text-align: center; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 2px solid #333; }
+                    .company-name { font-size: 20px; font-weight: bold; margin-bottom: 5px; }
+                    .company-details { font-size: 11px; color: #666; }
+                    .info-section { display: flex; justify-content: space-between; margin-bottom: 20px; }
+                    .vendor-info, .return-info { width: 48%; padding: 10px; border: 1px solid #ddd; }
+                    .section-title { font-weight: bold; margin-bottom: 5px; font-size: 12px; }
+                    .section-content { font-size: 11px; line-height: 1.3; }
+                    .table-container { margin-top: 20px; }
+                    table { width: 100%; border-collapse: collapse; font-size: 10px; }
+                    th, td { border: 1px solid #333; padding: 6px; text-align: left; }
+                    th { background-color: #f5f5f5; font-weight: bold; text-align: center; }
+                    .text-right { text-align: right; }
+                    .text-center { text-align: center; }
+                    .totals-section { margin-top: 20px; display: flex; justify-content: flex-end; }
+                    .totals-table { width: 300px; border-collapse: collapse; }
+                    .totals-table td { border: 1px solid #333; padding: 6px; }
+                    .totals-table .label { font-weight: bold; background-color: #f5f5f5; }
+                    .page-number { text-align: right; margin-top: 20px; font-size: 10px; }
+                    .balance-message { margin-top: 15px; text-align: center; padding: 8px; background-color: #f8f9fa; border: 1px solid #dee2e6; }
+                    .balance-text { font-size: 11px; color: #6c757d; font-style: italic; font-weight: bold; }
+                    .amount-words-section { margin-top: 15px; padding: 10px; border: 1px solid #ddd; background-color: #f8f9fa; }
+                    .amount-words-container { display: flex; justify-content: space-between; gap: 15px; }
+                    .amount-words-column, .total-amount-column { flex: 1; }
+                    .amount-words-label, .total-amount-label { font-weight: bold; font-size: 11px; color: #333; margin-bottom: 3px; }
+                    .amount-words-text { font-size: 10px; color: #555; line-height: 1.3; font-style: italic; }
+                    .total-amount-value { font-size: 14px; font-weight: bold; color: #333; }
+                    .tax-table-section { margin-top: 15px; }
+                    .tax-table { width: 100%; border-collapse: collapse; font-size: 9px; border: 1px solid #333; }
+                    .tax-table th { background-color: #f5f5f5; font-weight: bold; text-align: center; padding: 6px; border: 1px solid #333; font-size: 10px; }
+                    .tax-table td { padding: 6px; border: 1px solid #333; text-align: left; }
+                    .tax-breakdown { display: flex; flex-direction: column; align-items: center; gap: 1px; }
+                    .tax-breakdown div:first-child { font-weight: bold; font-size: 9px; }
+                    .tax-breakdown div:last-child { font-size: 9px; color: #555; }
+                    .tax-words-section { margin-top: 10px; padding: 8px; border: 1px solid #ddd; background-color: #f8f9fa; }
+                    .tax-words-container { text-align: left; }
+                    .tax-words-label { font-weight: bold; font-size: 11px; color: #333; margin-bottom: 3px; }
+                    .tax-words-text { font-size: 10px; color: #555; line-height: 1.3; font-style: italic; }
+                    .additional-details-section { margin-top: 15px; padding: 10px; border: 1px solid #ddd; background-color: #f8f9fa; }
+                    .details-grid { display: flex; flex-direction: column; gap: 10px; }
+                    .details-row { display: flex; gap: 15px; flex-wrap: wrap; }
+                    .details-column { flex: 1; min-width: 150px; padding: 8px; border: 1px solid #ccc; background-color: white; }
+                    .details-label { font-weight: bold; font-size: 11px; color: #333; margin-bottom: 5px; }
+                    .details-content { font-size: 10px; color: #555; line-height: 1.3; }
+                    .signature-line { border-bottom: 1px solid #333; margin-bottom: 3px; height: 15px; }
+                    .signature-text { font-size: 9px; color: #666; text-align: center; }
+                </style>
+            </head>
+            <body>
+                ${printContent}
+            </body>
+            </html>
+        `);
+        
+        printWindow.document.close();
+        printWindow.print();
+    }
+
+    // Initialize preview
+    document.addEventListener('DOMContentLoaded', function() {
+        document.getElementById('preview').innerHTML = generateDocumentContent(false);
+    });
+</script>
+</body>
+</html>
